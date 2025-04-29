@@ -1,70 +1,81 @@
-import 'dart:async';
+import 'package:aventus/constants/constants.dart';
+import 'package:aventus/controller/post_controller.dart';
 import 'package:aventus/controller/themecontroller.dart';
-import 'package:aventus/model/postmodel.dart';
-import 'package:aventus/services/connectivity_service.dart';
 import 'package:aventus/view/theme_page.dart';
+import 'package:aventus/view/widgets/custom_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late Box<PostModel> postBox;
-
-  @override
-  void initState() {
-    super.initState();
-    postBox = Hive.box<PostModel>('posts');
-    SyncService.syncPosts();
-    Timer.periodic(const Duration(minutes: 5), (timer) {
-      SyncService.syncPosts();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Offline Posts'),
-        actions: [
+      appBar: CustomAppbar(
+        heading: 'Aventus',
+        appbaractions: [
           Consumer<ThemeNotifier>(
-            builder: (context, themeNotifier, _) => Switch(
-              value: themeNotifier.currentTheme.brightness == Brightness.dark,
-              onChanged: (value) {
-                themeNotifier.toggleDarkMode(value);
-              },
-            ),
+            builder: (context, themeNotifier, child) {
+              return PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'Light':
+                      themeNotifier.switchTheme(AppThemes.lightTheme);
+                      break;
+                    case 'Dark':
+                      themeNotifier.switchTheme(AppThemes.darkTheme);
+                      break;
+                    case 'Custom':
+                      themeNotifier.switchTheme(AppThemes.appTheme);
+                      break;
+                  }
+                },
+                icon: const Icon(Icons.color_lens),
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                      value: 'Light', child: Text('Light Theme')),
+                  const PopupMenuItem(value: 'Dark', child: Text('Dark Theme')),
+                  const PopupMenuItem(
+                      value: 'Custom', child: Text('Custom Theme')),
+                ],
+              );
+            },
           ),
         ],
       ),
-      body: ValueListenableBuilder(
-        valueListenable: postBox.listenable(),
-        builder: (context, box, _) {
-          if (box.values.isEmpty) return const Center(child: Text('No Posts'));
-          return ListView.builder(
-            itemCount: box.values.length,
-            itemBuilder: (_, i) {
-              final post = box.getAt(i)!;
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ThemedContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(post.title,
-                          style: Theme.of(context).textTheme.titleLarge),
-                      const SizedBox(height: 8),
-                      Text(post.body),
-                    ],
+      body: Consumer<PostProvider>(
+        builder: (context, postProvider, child) {
+          if (postProvider.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (postProvider.posts.isEmpty) {
+            return const Center(child: Text('No Posts Available'));
+          }
+
+          return RefreshIndicator(
+            onRefresh: () => postProvider.refreshPosts(),
+            child: ListView.builder(
+              itemCount: postProvider.posts.length,
+              itemBuilder: (ctx, index) {
+                final post = postProvider.posts[index];
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ThemedContainer(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(post.title,
+                            style: Theme.of(context).textTheme.titleLarge),
+                        const SizedBox(height: 8),
+                        Text(post.body),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
       ),

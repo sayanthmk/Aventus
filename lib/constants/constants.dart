@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class AppThemes {
   static final appTheme = ThemeData(
     brightness: Brightness.light,
-    primarySwatch: Colors.indigo,
-    cardColor: Colors.white,
-    scaffoldBackgroundColor: Colors.grey[100],
+    primarySwatch: Colors.green,
+    cardColor: Colors.blue[300],
+    scaffoldBackgroundColor: Colors.grey[200],
     textTheme: const TextTheme(
       titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       bodyMedium: TextStyle(fontSize: 14),
@@ -18,7 +18,10 @@ class AppThemes {
     cardColor: Colors.white,
     scaffoldBackgroundColor: Colors.grey[100],
     textTheme: const TextTheme(
-      titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      titleLarge: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
       bodyMedium: TextStyle(fontSize: 14),
     ),
   );

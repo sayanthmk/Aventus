@@ -1,3 +1,4 @@
+import 'package:aventus/controller/post_controller.dart';
 import 'package:aventus/controller/themecontroller.dart';
 import 'package:aventus/model/postmodel.dart';
 import 'package:aventus/view/home_screen.dart';
@@ -11,8 +12,13 @@ void main() async {
   Hive.registerAdapter(PostModelAdapter());
   await Hive.openBox<PostModel>('posts');
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+        ChangeNotifierProvider(
+          create: (_) => PostProvider()..loadPosts(),
+        ),
+      ],
       child: const MyApp(),
     ),
   );
